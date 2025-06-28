@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>EV Charging Station Dashboard</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f9f9f9;
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🔌 Smart EV Charging Dashboard</h1>
+    <label for="stationFilter">Filter by Station ID:</label>
+    <select id="stationFilter" onchange="filterStations()">
+        <option value="all">All</option>
+        {% for station in stations %}
+        <option value="{{ station.station_id }}">{{ station.station_id }}</option>
+        {% endfor %}
+    </select>
+
+    <table>
+        <tr>
+            <th>Station ID</th>
+            <th>Timestamp</th>
+            <th>Status</th>
+            <th>Temperature (°C)</th>
+            <th>Battery Level (%)</th>
+            <th>Power Usage (kWh)</th>
+            <th>Predicted Power Usage</th>
+
+        </tr>
+        {% for station in stations %}
+        <tr>
+            <td>{{ station.station_id }}</td>
+            <td>{{ station.timestamp }}</td>
+            <td>{{ station.charging_status }}</td>
+            <td>{{ station.temperature }}</td>
+            <td>{{ station.battery_level }}</td>
+            <td>{{ station.power_draw_kWh }}</td>
+            <td>{{ station.predicted_power_usage }}</td>
+            <td>{% if station.battery_level < 20 %} <span style="color: red;">⚠️ Low Battery</span>
+                    {% elif station.predicted_power_usage > 6 %}
+                    <span style="color: orange;">⚡ High Usage Expected</span>
+                    {% else %}
+                    ✅ Normal
+                    {% endif %}
+            </td>
+
+        </tr>
+        {% endfor %}
+    </table>
+    <h2>Predicted Power Usage (kWh) by Station</h2>
+    <canvas id="barChart" width="600" height="400"></canvas>
+
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        const stationIds = {{ stations | tojson }};
+        const labels = stationIds.map(item => item.station_id);
+        const predictedPower = stationIds.map(item => item.predicted_power_usage);
+
+        const ctx = document.getElementById('barChart').getContext('2d');
+        const barChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Predicted Power Usage (kWh)',
+                    data: predictedPower,
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+    <h2>Battery Level vs Power Draw (Line Chart)</h2>
+    <canvas id="lineChart" width="600" height="400"></canvas>
+
+    <script>
+        const batteryLevels = stationIds.map(item => item.battery_level);
+        const powerDraw = stationIds.map(item => item.power_draw_kWh);
+
+        const ctxLine = document.getElementById('lineChart').getContext('2d');
+        const lineChart = new Chart(ctxLine, {
+            type: 'line',
+            data: {
+                labels: batteryLevels,
+                datasets: [{
+                    label: 'Power Draw (kWh)',
+                    data: powerDraw,
+                    fill: false,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Battery Level (%)'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Power Draw (kWh)'
+                        },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+    <h2>Charging Status Breakdown (Pie Chart)</h2>
+    <canvas id="pieChart" width="400" height="400"></canvas>
+
+    <script>
+        const statusCounts = stationIds.reduce((acc, item) => {
+            acc[item.charging_status] = (acc[item.charging_status] || 0) + 1;
+            return acc;
+        }, {});
+
+        const pieLabels = Object.keys(statusCounts);
+        const pieData = Object.values(statusCounts);
+
+        const ctxPie = document.getElementById('pieChart').getContext('2d');
+        const pieChart = new Chart(ctxPie, {
+            type: 'pie',
+            data: {
+                labels: pieLabels,
+                datasets: [{
+                    data: pieData,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    </script>
+    <script>
+  function filterStations() {
+    var selected = document.getElementById("stationFilter").value;
+    var rows = document.querySelectorAll("tbody tr");
+
+    rows.forEach(row => {
+      const cell = row.querySelector("td");
+      const id = cell ? cell.innerText : "";
+      if (selected === "all" || id === selected) {
+        row.style.display = "";
+      } else {
+        row.style.display = "none";
+      }
+    });
+  }
+</script>
+</body>
+
+</html>
