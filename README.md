@@ -58,6 +58,22 @@ Pandas & scikit-learn
 Chart.js
 
 HTML/CSS
+---
+
+## 🖼️ Screenshots
+
+### Dashboard View
+![Dashboard](dashboard.png)
+
+### Bar Chart - Predicted Power Usage
+![Bar Chart](bar_chart.png)
+
+### Line Chart - Battery Level vs Power Draw
+![Line Chart](line_chart.png)
+
+### Pie Chart - Charging Status
+![Pie Chart](pie_chart.png)
+
 
 👩‍💻 Author
 Sneha Verma
