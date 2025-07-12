@@ -80,3 +80,4 @@ Sneha Verma
 B.Tech Electrical Engineering
 Internship Project — June 2025
 Passionate about IoT, Smart Tech & ML 🌱
+Under the guidance of Dr. Surender Reddy Salkuti
